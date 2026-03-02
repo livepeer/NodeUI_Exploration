@@ -1,4 +1,4 @@
-/* Node Container */
+/* ── Node Container ─────────────────────────────────────────────────────────── */
 .pipeline-node {
   background: #1c1c1c;
   border: 1px solid #2a2a2a;
@@ -16,7 +16,7 @@
   box-shadow: 0 4px 32px rgba(0, 0, 0, 0.6);
 }
 
-/* Header */
+/* ── Header ─────────────────────────────────────────────────────────────────── */
 .pipeline-node__header {
   display: flex;
   align-items: center;
@@ -51,7 +51,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  opacity: 0.6;
+  opacity: 0.5;
   transition: opacity 0.15s;
   flex-shrink: 0;
 }
@@ -60,12 +60,12 @@
   opacity: 1;
 }
 
-/* Body */
+/* ── Body ────────────────────────────────────────────────────────────────────── */
 .pipeline-node__body {
   padding: 4px 0;
 }
 
-/* Field Row */
+/* ── Field Row ───────────────────────────────────────────────────────────────── */
 .pipeline-node__field {
   display: flex;
   align-items: center;
@@ -73,10 +73,6 @@
   padding: 5px 10px;
   position: relative;
   min-height: 28px;
-}
-
-.pipeline-node__field--connected {
-  /* subtle highlight for connected fields */
 }
 
 .pipeline-node__field-label {
@@ -103,7 +99,7 @@
   line-height: 1.2;
 }
 
-/* Textarea Field */
+/* ── Textarea field ──────────────────────────────────────────────────────────── */
 .pipeline-node__textarea-wrapper {
   display: flex;
   flex-direction: column;
@@ -126,15 +122,20 @@
   color: #444;
 }
 
-/* Handles */
+/* ── Handles ─────────────────────────────────────────────────────────────────── */
+/*
+  Handle colour is driven by the CSS variable --dot-color set inline on
+  .pipeline-node, so it always matches the node's status dot.
+*/
 .pipeline-node__handle {
   width: 7px !important;
   height: 7px !important;
-  background: #4ade80 !important;
+  /* Inherit the node's colour, fall back to a neutral grey */
+  background: var(--dot-color, #666) !important;
   border: none !important;
   border-radius: 50% !important;
   opacity: 0 !important;
-  transition: opacity 0.15s !important;
+  transition: opacity 0.15s, transform 0.12s !important;
   z-index: 10;
 }
 
@@ -146,21 +147,23 @@
   right: -3.5px !important;
 }
 
+/* Connected handles stay visible */
 .pipeline-node__handle--connected {
   opacity: 1 !important;
 }
 
-/* Show handles on hover */
+/* On node hover — show handles very subtly (30 %) so the user can see where to connect */
 .pipeline-node:hover .pipeline-node__handle {
-  opacity: 0.5 !important;
+  opacity: 0.3 !important;
 }
 
+/* Direct handle hover — show fully and pop slightly */
 .pipeline-node__handle:hover {
   opacity: 1 !important;
-  transform: scale(1.4);
+  transform: scale(1.5) !important;
 }
 
-/* Context Toolbar */
+/* ── Context Toolbar ─────────────────────────────────────────────────────────── */
 .node-toolbar {
   display: flex;
   align-items: center;
@@ -186,4 +189,31 @@
 
 .toolbar-btn:hover {
   background: #2a2a2a;
+}
+
+/* Colour dot inside the colour-picker trigger button */
+.toolbar-color-dot {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.12s;
+}
+
+.toolbar-btn:hover .toolbar-color-dot {
+  transform: scale(1.2);
+}
+
+/* Colour picker popover — opens below the toolbar button */
+.toolbar-color-wrapper {
+  position: relative;
+}
+
+.color-picker-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
 }

@@ -1,9 +1,11 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import ReactFlow, {
   Background,
   BackgroundVariant,
+  ReactFlowProvider,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   addEdge,
   type Connection,
   type Edge,
@@ -12,9 +14,15 @@ import ReactFlow, {
 import 'reactflow/dist/style.css'
 import PipelineNode from './components/PipelineNode'
 import type { PipelineNodeData } from './components/PipelineNode'
+import CustomEdge from './components/CustomEdge'
+import AddNodeModal from './components/AddNodeModal'
+import NodeEditSidebar from './components/NodeEditSidebar'
+import type { NodeTypeDef } from './nodeTypeDefs'
+import { EditSidebarContext } from './EditSidebarContext'
 import './App.css'
 
 const nodeTypes = { pipelineNode: PipelineNode }
+const edgeTypes = { custom: CustomEdge }
 
 const initialNodes: Node<PipelineNodeData>[] = [
   {
@@ -79,16 +87,174 @@ const initialNodes: Node<PipelineNodeData>[] = [
 
 const initialEdges: Edge[] = []
 
-// Sidebar icon button
-function SidebarIcon({ icon }: { icon: React.ReactNode }) {
+// ── Inner component — inside ReactFlowProvider context ──────────────────────
+function FlowApp() {
+  const { screenToFlowPosition } = useReactFlow()
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+  const [showModal, setShowModal] = useState(false)
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
+
+  const openSidebar = useCallback((id: string) => setEditingNodeId(id), [])
+
+  const onUpdateNode = useCallback(
+    (id: string, updater: (data: PipelineNodeData) => PipelineNodeData) => {
+      setNodes((nds) =>
+        nds.map((n) => (n.id === id ? { ...n, data: updater(n.data) } : n))
+      )
+    },
+    [setNodes]
+  )
+
+  const onConnect = useCallback(
+    (connection: Connection) =>
+      setEdges((eds) => addEdge({ ...connection, type: 'custom' }, eds)),
+    [setEdges]
+  )
+
+  const addNode = useCallback(
+    (def: NodeTypeDef) => {
+      const id = `${def.typeId}-${Date.now()}`
+      // Place at viewport center with a small random offset
+      const position = screenToFlowPosition({
+        x: window.innerWidth / 2 + (Math.random() - 0.5) * 120,
+        y: window.innerHeight / 2 + (Math.random() - 0.5) * 80,
+      })
+      const newNode: Node<PipelineNodeData> = {
+        id,
+        type: 'pipelineNode',
+        position,
+        data: {
+          title: def.title,
+          status: def.status,
+          fields: def.fields.map((f) => ({ ...f, id: `${id}-${f.id}` })),
+        },
+      }
+      setNodes((nds) => [...nds, newNode])
+    },
+    [screenToFlowPosition, setNodes]
+  )
+
+  // Dim nodes that are NOT part of the current selection (works for single + multi-select)
+  const anySelected = useMemo(() => nodes.some((n) => n.selected), [nodes])
+
+  const displayNodes = useMemo(
+    () =>
+      nodes.map((n) => ({
+        ...n,
+        style: {
+          ...n.style,
+          opacity: anySelected && !n.selected ? 0.3 : 1,
+          transition: 'opacity 0.2s ease',
+        },
+      })),
+    [nodes, anySelected]
+  )
+
   return (
-    <button className="sidebar-icon">
-      {icon}
-    </button>
+    <EditSidebarContext.Provider value={openSidebar}>
+    <div className="app">
+      {/* Left Sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <LogoIcon />
+        </div>
+        <nav className="sidebar-nav">
+          <SidebarIcon icon={<CircleIcon />} />
+          <SidebarIcon icon={<CircleIcon />} />
+          <SidebarIcon icon={<CircleIcon />} />
+        </nav>
+        <nav className="sidebar-nav sidebar-nav--bottom">
+          <SidebarIcon icon={<CircleIcon />} />
+          <SidebarIcon icon={<CircleIcon />} />
+          <SidebarIcon icon={<CircleIcon />} />
+        </nav>
+      </aside>
+
+      {/* Main Canvas */}
+      <main className="canvas">
+        <ReactFlow
+          nodes={displayNodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+          minZoom={0.25}
+          maxZoom={3}
+          fitView
+          fitViewOptions={{ padding: 0.4 }}
+          deleteKeyCode="Delete"
+          multiSelectionKeyCode="Shift"
+          selectionOnDrag={true}
+          panOnDrag={[1, 2]}
+          nodesDraggable
+          nodesConnectable
+          elementsSelectable
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background
+            variant={BackgroundVariant.Lines}
+            gap={64}
+            size={1}
+            color="rgba(255,255,255,0.03)"
+          />
+        </ReactFlow>
+      </main>
+
+      {/* Bottom Toolbar */}
+      <div className="bottom-toolbar">
+        <button className="bottom-toolbar__btn" title="Share">
+          <ShareIcon />
+        </button>
+        <button className="bottom-toolbar__btn" title="Camera">
+          <CameraIcon />
+        </button>
+        <button className="bottom-toolbar__btn" title="Draw">
+          <DrawIcon />
+        </button>
+        <button className="bottom-toolbar__btn" title="Shape">
+          <ShapeIcon />
+        </button>
+        <button className="bottom-toolbar__btn" title="Link">
+          <LinkIcon />
+        </button>
+        <button
+          className="bottom-toolbar__btn bottom-toolbar__btn--add"
+          title="Add node"
+          onClick={() => setShowModal(true)}
+        >
+          <PlusIcon />
+        </button>
+      </div>
+
+      {/* Add Node Modal */}
+      {showModal && (
+        <AddNodeModal
+          onAdd={addNode}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+    </div>
+
+    {/* Edit Sidebar */}
+    <NodeEditSidebar
+      nodeId={editingNodeId}
+      nodes={nodes}
+      onClose={() => setEditingNodeId(null)}
+      onUpdateNode={onUpdateNode}
+    />
+    </EditSidebarContext.Provider>
   )
 }
 
-// SVG icons
+// ── Sidebar helpers ──────────────────────────────────────────────────────────
+function SidebarIcon({ icon }: { icon: React.ReactNode }) {
+  return <button className="sidebar-icon">{icon}</button>
+}
+
 const LogoIcon = () => (
   <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
     <circle cx="9" cy="9" r="6" fill="#ff4d6d" opacity="0.9" />
@@ -103,7 +269,7 @@ const CircleIcon = () => (
   </svg>
 )
 
-// Bottom toolbar icons
+// ── Bottom toolbar icons ─────────────────────────────────────────────────────
 const ShareIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <path d="M10 2l4 4-4 4M14 6H6a4 4 0 000 8" stroke="#666" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
@@ -143,110 +309,11 @@ const PlusIcon = () => (
   </svg>
 )
 
+// ── Root export — wraps everything in ReactFlowProvider ──────────────────────
 export default function App() {
-  const [nodes, , onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-
-  const onConnect = useCallback(
-    (connection: Connection) => setEdges((eds) => addEdge({
-      ...connection,
-      style: { stroke: '#4ade80', strokeWidth: 1.5 },
-      type: 'default',
-    }, eds)),
-    [setEdges]
-  )
-
-  // Dim unselected nodes when any node is selected
-  const selectedNodeId = useMemo(
-    () => nodes.find((n) => n.selected)?.id ?? null,
-    [nodes]
-  )
-
-  const displayNodes = useMemo(
-    () =>
-      nodes.map((n) => ({
-        ...n,
-        style: {
-          ...n.style,
-          opacity: selectedNodeId && n.id !== selectedNodeId ? 0.3 : 1,
-          transition: 'opacity 0.2s ease',
-        },
-      })),
-    [nodes, selectedNodeId]
-  )
-
   return (
-    <div className="app">
-      {/* Left Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <LogoIcon />
-        </div>
-        <nav className="sidebar-nav">
-          <SidebarIcon icon={<CircleIcon />} />
-          <SidebarIcon icon={<CircleIcon />} />
-          <SidebarIcon icon={<CircleIcon />} />
-        </nav>
-        <nav className="sidebar-nav sidebar-nav--bottom">
-          <SidebarIcon icon={<CircleIcon />} />
-          <SidebarIcon icon={<CircleIcon />} />
-          <SidebarIcon icon={<CircleIcon />} />
-        </nav>
-      </aside>
-
-      {/* Main Canvas */}
-      <main className="canvas">
-        <ReactFlow
-          nodes={displayNodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-          minZoom={0.25}
-          maxZoom={3}
-          fitView
-          fitViewOptions={{ padding: 0.4 }}
-          deleteKeyCode="Delete"
-          multiSelectionKeyCode="Shift"
-          selectionOnDrag={false}
-          panOnDrag={[1, 2]}
-          nodesDraggable
-          nodesConnectable
-          elementsSelectable
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background
-            variant={BackgroundVariant.Lines}
-            gap={64}
-            size={1}
-            color="rgba(255,255,255,0.03)"
-          />
-        </ReactFlow>
-      </main>
-
-      {/* Bottom Toolbar */}
-      <div className="bottom-toolbar">
-        <button className="bottom-toolbar__btn" title="Share">
-          <ShareIcon />
-        </button>
-        <button className="bottom-toolbar__btn" title="Camera">
-          <CameraIcon />
-        </button>
-        <button className="bottom-toolbar__btn" title="Draw">
-          <DrawIcon />
-        </button>
-        <button className="bottom-toolbar__btn" title="Shape">
-          <ShapeIcon />
-        </button>
-        <button className="bottom-toolbar__btn" title="Link">
-          <LinkIcon />
-        </button>
-        <button className="bottom-toolbar__btn bottom-toolbar__btn--add" title="Add node">
-          <PlusIcon />
-        </button>
-      </div>
-    </div>
+    <ReactFlowProvider>
+      <FlowApp />
+    </ReactFlowProvider>
   )
 }

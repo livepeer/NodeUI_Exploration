@@ -19,13 +19,7 @@ html, body, #root {
 }
 
 .react-flow__edge path {
-  stroke: #4ade80;
   stroke-width: 1.5;
-}
-
-.react-flow__edge.selected path,
-.react-flow__edge:focus path {
-  stroke: #4ade80;
 }
 
 .react-flow__connection-path {
@@ -33,25 +27,12 @@ html, body, #root {
   stroke-width: 1.5;
 }
 
+/* Handle base — colour is set per-node via --dot-color in PipelineNode.css */
 .react-flow__handle {
-  width: 8px;
-  height: 8px;
-  background: #4ade80;
+  background: var(--dot-color, #666);
   border: none;
   border-radius: 50%;
   opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.react-flow__handle:hover,
-.react-flow__handle.connecting,
-.react-flow__handle.connected {
-  opacity: 1;
-}
-
-/* Show handles when edge is connected */
-.react-flow__node:has(.pipeline-node--connected) .react-flow__handle {
-  opacity: 1;
 }
 
 .react-flow__attribution {

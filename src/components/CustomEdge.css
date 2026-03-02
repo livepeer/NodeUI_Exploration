@@ -1,0 +1,30 @@
+.edge-delete-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1c1c1c;
+  border: 1px solid #3a3a3a;
+  color: #888;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.15s, transform 0.15s, background 0.12s, color 0.12s;
+  pointer-events: none;
+}
+
+.edge-delete-btn--visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: all;
+}
+
+.edge-delete-btn:hover {
+  background: #2a2a2a;
+  border-color: #ef4444;
+  color: #ef4444;
+}
