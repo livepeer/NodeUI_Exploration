@@ -1,0 +1,189 @@
+/* Node Container */
+.pipeline-node {
+  background: #1c1c1c;
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+  min-width: 168px;
+  overflow: visible;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  cursor: default;
+  user-select: none;
+}
+
+.pipeline-node--selected {
+  border-color: #3d3d3d;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* Header */
+.pipeline-node__header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 10px 9px;
+  border-bottom: 1px solid #252525;
+}
+
+.pipeline-node__status {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pipeline-node__title {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: #e0e0e0;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pipeline-node__more {
+  background: none;
+  border: none;
+  padding: 0 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.pipeline-node__more:hover {
+  opacity: 1;
+}
+
+/* Body */
+.pipeline-node__body {
+  padding: 4px 0;
+}
+
+/* Field Row */
+.pipeline-node__field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  position: relative;
+  min-height: 28px;
+}
+
+.pipeline-node__field--connected {
+  /* subtle highlight for connected fields */
+}
+
+.pipeline-node__field-label {
+  font-size: 11px;
+  color: #666;
+  flex: 1;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pipeline-node__field-value {
+  font-size: 11px;
+  color: #c8c8c8;
+  background: #141414;
+  border-radius: 6px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+/* Textarea Field */
+.pipeline-node__textarea-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  padding: 2px 0;
+}
+
+.pipeline-node__textarea {
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 8px;
+  min-height: 80px;
+  padding: 8px;
+  width: 100%;
+}
+
+.pipeline-node__textarea-placeholder {
+  font-size: 11px;
+  color: #444;
+}
+
+/* Handles */
+.pipeline-node__handle {
+  width: 7px !important;
+  height: 7px !important;
+  background: #4ade80 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  opacity: 0 !important;
+  transition: opacity 0.15s !important;
+  z-index: 10;
+}
+
+.pipeline-node__handle--input {
+  left: -3.5px !important;
+}
+
+.pipeline-node__handle--output {
+  right: -3.5px !important;
+}
+
+.pipeline-node__handle--connected {
+  opacity: 1 !important;
+}
+
+/* Show handles on hover */
+.pipeline-node:hover .pipeline-node__handle {
+  opacity: 0.5 !important;
+}
+
+.pipeline-node__handle:hover {
+  opacity: 1 !important;
+  transform: scale(1.4);
+}
+
+/* Context Toolbar */
+.node-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #1c1c1c;
+  border: 1px solid #2d2d2d;
+  border-radius: 10px;
+  padding: 5px 7px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.toolbar-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  transition: background 0.12s;
+}
+
+.toolbar-btn:hover {
+  background: #2a2a2a;
+}

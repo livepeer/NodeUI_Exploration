@@ -3,6 +3,10 @@
     "figma": {
       "transport": "http",
       "url": "https://mcp.figma.com/mcp"
+    },
+    "Vibma": {
+      "transport": "http",
+      "url": "http://127.0.0.1:3845/mcp"
     }
   }
 }
